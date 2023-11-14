@@ -1,3 +1,4 @@
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -62,7 +63,7 @@ class FileSystem {
         public abstract void deleteFile(String name);
 
         // copy file
-        public abstract void copyFile(String name);
+        public abstract void copyFile(String sourceName, String destName);
 
         // display bitmap
         public void displayBitmap(){
@@ -177,7 +178,7 @@ class FileSystem {
                     System.arraycopy(Disk.read(i), 0, dataBytes, index, dataSize);
                 }
             }
-            System.out.println(new String(dataBytes, StandardCharsets.UTF_8));
+            System.out.println(Arrays.toString(dataBytes));
         }
 
         @Override
@@ -227,13 +228,13 @@ class FileSystem {
 
         @Override
         // copy file
-        public void copyFile(String name){
+        public void copyFile(String sourceName, String destName){
             boolean isFound = false;
             // convert name to bytes
             byte[] nameBytes = new byte[8];
             byte fillValue = -1;
             Arrays.fill(nameBytes, fillValue);
-            byte[] dummy = name.getBytes(StandardCharsets.UTF_8);
+            byte[] dummy = sourceName.getBytes(StandardCharsets.UTF_8);
             System.arraycopy(dummy, 0, nameBytes, 0, dummy.length);
             int startIndex = 0;
             int blockSize = 0;
@@ -258,8 +259,6 @@ class FileSystem {
                 return;
             }
             // set up the copy file
-            String copyName = "Copy of " + name + ".txt";
-            String data;
             byte[] copyByte = new byte[dataSize];
             int index = 0;
 
@@ -274,19 +273,16 @@ class FileSystem {
                 }
             }
 
-            data = new String(copyByte, StandardCharsets.UTF_8);
+            Path currentDirectory = Paths.get(System.getProperty("user.dir"));
+            Path filePath = currentDirectory.resolve(destName);
+            if(!Files.isRegularFile(filePath)){
+                System.out.println("Error: The destination file must be in the current directory.");
+                return;
+            }
 
-            // Get the current working directory
-            String currentDirectory = System.getProperty("user.dir");
-
-            // Create a Path object for the file
-            Path filePath = Paths.get(currentDirectory, copyName);
-
-            try {
-                // Create the file (if it doesn't exist) and write the content
-                Files.write(filePath, data.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-
-                System.out.println("File created successfully at: " + filePath);
+            try(FileOutputStream outputStream = new FileOutputStream(destName)) {
+                outputStream.write(copyByte);
+                System.out.println("File copy successfully at: " + filePath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -442,7 +438,7 @@ class FileSystem {
                 nextBlock = Arrays.copyOfRange(Disk.read(index), Disk.BLOCKS_SIZE - 3, Disk.BLOCKS_SIZE);
                 index = bytesToInt(nextBlock);
             }
-            System.out.println(new String(dataBytes, StandardCharsets.UTF_8));
+            System.out.println(Arrays.toString(dataBytes));
         }
 
         @Override
@@ -493,13 +489,13 @@ class FileSystem {
         }
 
         @Override
-        public void copyFile(String name) {
+        public void copyFile(String sourceName, String destName) {
             boolean isFound = false;
             // convert name to bytes
             byte[] nameBytes = new byte[8];
             byte fillValue = -1;
             Arrays.fill(nameBytes, fillValue);
-            byte[] dummy = name.getBytes(StandardCharsets.UTF_8);
+            byte[] dummy = sourceName.getBytes(StandardCharsets.UTF_8);
             System.arraycopy(dummy, 0, nameBytes, 0, dummy.length);
             int startIndex = 0;
             int blockSize = 0;
@@ -521,9 +517,6 @@ class FileSystem {
                 System.out.println("File not found!");
                 return;
             }
-            // set up the copy file
-            String copyName = "Copy of " + name + ".txt";
-            String data;
 
             // get the data from disk
             byte[] copyByte = new byte[dataSize];
@@ -543,19 +536,16 @@ class FileSystem {
                 index = bytesToInt(nextBlock);
             }
 
-            data = new String(copyByte, StandardCharsets.UTF_8);
+            Path currentDirectory = Paths.get(System.getProperty("user.dir"));
+            Path filePath = currentDirectory.resolve(destName);
+            if(!Files.isRegularFile(filePath)){
+                System.out.println("Error: The destination file must be in the current directory.");
+                return;
+            }
 
-            // Get the current working directory
-            String currentDirectory = System.getProperty("user.dir");
-
-            // Create a Path object for the file
-            Path filePath = Paths.get(currentDirectory, copyName);
-
-            try {
-                // Create the file (if it doesn't exist) and write the content
-                Files.write(filePath, data.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-
-                System.out.println("File created successfully at: " + filePath);
+            try(FileOutputStream outputStream = new FileOutputStream(destName)) {
+                outputStream.write(copyByte);
+                System.out.println("File copy successfully at: " + filePath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -671,7 +661,7 @@ class FileSystem {
                     index = bytesToInt(partIndex);
                 }
             }
-            System.out.println(new String(dataBytes, StandardCharsets.UTF_8));
+            System.out.println(Arrays.toString(dataBytes));
         }
 
         @Override
@@ -731,13 +721,13 @@ class FileSystem {
         }
 
         @Override
-        public void copyFile(String name) {
+        public void copyFile(String sourceName, String destName) {
             boolean isFound = false;
             // convert name to bytes
             byte[] nameBytes = new byte[8];
             byte fillValue = -1;
             Arrays.fill(nameBytes, fillValue);
-            byte[] dummy = name.getBytes(StandardCharsets.UTF_8);
+            byte[] dummy = sourceName.getBytes(StandardCharsets.UTF_8);
             System.arraycopy(dummy, 0, nameBytes, 0, dummy.length);
             int indexTable = 0;
             int dataSize = 0;
@@ -758,9 +748,7 @@ class FileSystem {
                 System.out.println("File not found!");
                 return;
             }
-            // set up the copy file
-            String copyName = "Copy of " + name + ".txt";
-            String data;
+
             byte[] copyByte = new byte[dataSize];
 
             // get the data from disk
@@ -785,19 +773,16 @@ class FileSystem {
                 }
             }
 
-            data = new String(copyByte, StandardCharsets.UTF_8);
+            Path currentDirectory = Paths.get(System.getProperty("user.dir"));
+            Path filePath = currentDirectory.resolve(destName);
+            if(!Files.isRegularFile(filePath)){
+                System.out.println("Error: The destination file must be in the current directory.");
+                return;
+            }
 
-            // Get the current working directory
-            String currentDirectory = System.getProperty("user.dir");
-
-            // Create a Path object for the file
-            Path filePath = Paths.get(currentDirectory, copyName);
-
-            try {
-                // Create the file (if it doesn't exist) and write the content
-                Files.write(filePath, data.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-
-                System.out.println("File created successfully at: " + filePath);
+            try(FileOutputStream outputStream = new FileOutputStream(destName)) {
+                outputStream.write(copyByte);
+                System.out.println("File copy successfully at: " + filePath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -906,12 +891,16 @@ class FileSystem {
 
     // Factory method to create AllocationMethod based on user input
     public static AllocationMethod createAllocationMethod(String method) {
-        return switch (method.toLowerCase()) {
-            case "contiguous" -> new Contiguous();
-            case "chained" -> new Chained();
-            case "indexed" -> new Indexed();
-            default -> throw new IllegalArgumentException("Invalid allocation method: " + method);
-        };
+        switch (method.toLowerCase()) {
+            case "contiguous":
+                return new Contiguous();
+            case "chained":
+                return new Chained();
+            case "indexed":
+                return new Indexed();
+            default:
+                throw new IllegalArgumentException("Invalid allocation method: " + method);
+        }
     }
 }
 
@@ -955,16 +944,14 @@ class UserInterface {
         while(userChoice != 8) {
             System.out.println();
             System.out.println(
-                    """
-                            1) Display a file
-                            2) Display the file table
-                            3) Display the free space bitmap
-                            4) Display a disk block
-                            5) Copy a file from the simulation to a file on the real system
-                            6) Copy a file from the real system to a file in the simulation
-                            7) Delete a file
-                            8) Exit
-                            """
+                "1) Display a file\n" +
+                "2) Display the file table\n" +
+                "3) Display the free space bitmap\n" +
+                "4) Display a disk block\n" +
+                "5) Copy a file from the simulation to a file on the real system\n" +
+                "6) Copy a file from the real system to a file in the simulation\n" +
+                "7) Delete a file\n" +
+                "8) Exit"
             );
             System.out.print("Choice: ");
             userChoice = in.nextInt();
@@ -999,12 +986,15 @@ class UserInterface {
                     break;
 
                 case 5:
-                    String sfileName;
+                    String sourceName;
+                    String destName;
                     in.nextLine();
-                    System.out.print("File name: ");
-                    sfileName = in.nextLine();
-                    if(isValid(sfileName)){
-                        allocationMethod.copyFile(sfileName);
+                    System.out.print("Copy from: ");
+                    sourceName = in.nextLine();
+                    System.out.print("Copy to: ");
+                    destName = in.nextLine();
+                    if(isValid(sourceName)){
+                        allocationMethod.copyFile(sourceName, destName);
                     } else {
                         System.out.println("File names should be up to 8 characters.  Names should only have lowercase letters.");
                     }
